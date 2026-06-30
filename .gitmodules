@@ -4,6 +4,7 @@
 [submodule "ws_fastlio/src/FAST_LIO_ROS2"]
 	path = ws_fastlio/src/FAST_LIO_ROS2
 	url = https://github.com/Doctorcro/Fast-Lio2_ROS2.git
+	branch = ros2
 [submodule "ws_livox/src/livox_ros_driver2"]
 	path = ws_livox/src/livox_ros_driver2
 	url = https://github.com/Livox-SDK/livox_ros_driver2.git
