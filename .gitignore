@@ -1,6 +1,8 @@
 # FAST-LIO2 Output Files — Large Binaries
 # All output is redirected to fastlio_output/ — exclude entirely
-fastlio_output/
+fastlio_output/**/*.pcd
+fastlio_output/**/*.ply
+fastlio_output/**/*.pcd.gz
 
 # Colcon build artifacts
 ws_livox/build/
