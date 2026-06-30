@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>imu_converter</name>
+  <version>0.0.1</version>
+  <description>IMU unit converter for Livox Mid-360: g → m/s²</description>
+  <maintainer email="user@example.com">user</maintainer>
+  <license>MIT</license>
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

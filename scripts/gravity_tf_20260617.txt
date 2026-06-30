@@ -1,0 +1,28 @@
+# Gravity alignment TF for rosbag 20260617-1
+# Mount: Y-down (Y-axis points toward ground), X ~59° right of vehicle forward
+# Computed from first 200 IMU samples of /livox/imu_converted
+#
+# Bag: /home/cpp/Documents/fastlio2_maps/20260617-1/verify_phase9_20260617_193619_0.db3
+# Storage: sqlite3  |  ROS Distro recorded: humble  |  Replayed on: jazzy
+#
+# Gravity vector measured (accelerometer / specific force, IMU frame):
+#   [0.016663, -9.744526, 0.000013]  m/s²
+#   Magnitude: 9.7445 m/s²  (expect ~9.81)
+#   Direction: -Y  (specific force = upward reaction; physical down = +Y in camera_init)
+#
+# Rotation: -90.00° about X-axis
+# Quaternion [qx, qy, qz, qw]: [-0.70710529, -0.00120913, 0.00000000, 0.70710724]
+#
+# Rotation matrix (for PLY post-processing, row-major):
+#   [ 0.99999708,  0.00170997, -0.00170997]
+#   [ 0.00170997,  0.00000421,  0.99999854]
+#   [ 0.00170997, -0.99999854,  0.00000128]
+#
+# Command (ROS2 Jazzy named-argument syntax):
+ros2 run tf2_ros static_transform_publisher --x 0 --y 0 --z 0 --qx -0.70710529 --qy -0.00120913 --qz 0.00000000 --qw 0.70710724 --frame-id world_aligned --child-frame-id camera_init
+#
+# RViz2: set Fixed Frame to world_aligned after starting the publisher.
+#
+# Note: original gravity_align.py had sign error (mapped specific force to -Z instead of +Z).
+# Fixed 2026-06-23: target changed to [0,0,+1] in compute_alignment_quaternion().
+# Phase 10 verified PASS: map right-side-up, buildings vertical, ground flat.
