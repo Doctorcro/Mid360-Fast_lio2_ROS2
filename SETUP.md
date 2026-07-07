@@ -136,3 +136,4 @@ ros2 bag play <YOUR_BAG_PATH> --clock --rate=1.0
 - **Gravity TF quaternion** in `launch/mapping.launch.py` is calibrated for this specific sensor mount. Re-run `scripts/gravity_align.py` on a new bag if the sensor is remounted.
 - **PCD output** goes to `~/Fast_lio2_ROS2/fastlio_output/PCD/`. Convert to PLY with `scripts/convert_with_intensity.py`.
 - `pcd_save_en` is set to `false` in `config/mid360.yaml` by default — set to `true` to save maps.
+- **Testing ros2-bag** https://drive.google.com/drive/folders/15RKwtqCNUJS_pvpMfkxxlO0WVyMA-MEn?usp=drive_link --dowload the whole folder.
