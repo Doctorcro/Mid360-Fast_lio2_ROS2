@@ -113,12 +113,20 @@ git -C ws_fastlio/src/FAST_LIO_ROS2 submodule update --init --recursive
 ```bash
 source ws_livox/install/setup.bash
 source ws_fastlio/install/setup.bash
+
+# for mapping
 ros2 launch fast_lio mapping.launch.py
+
+# for ros2-bag replay
+ros2 launch fast_lio mapping.launch.py --config_file:=mid360.yaml --use_sim_time:=true
+# use_sim_time:= >> to prevent clock mismatches while in replay (prevent nod time mismatch)
 ```
 
 For bag replay:
 ```bash
-ros2 bag play <YOUR_BAG_PATH> --clock
+ros2 bag play <YOUR_BAG_PATH> --clock --rate=1.0 
+# "clock" for line-up to sim time
+# suggested maximum rate=2.5 for GUP under gtx-1050
 ```
 
 ---
