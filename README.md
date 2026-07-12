@@ -1,4 +1,6 @@
-# Setup Guide — Mid360 FAST-LIO2 ROS2
+# Mid360-Fast_lio2_ROS2
+
+FAST-LIO2 SLAM on ROS2 for the Livox Mid-360 LiDAR — live mapping, ros2-bag replay, and PCD/PLY map export.
 
 Tested on: **Ubuntu 24.04 / ROS2 Jazzy / GCC 13.3.0**
 Also verified on: **Ubuntu 22.04 / ROS2 Humble** (see notes below)
@@ -39,6 +41,12 @@ Before building, update these two files for your network:
 ```
 
 A template is at `config/MID360_config.template.json`.
+
+**Your host's network interface must also be preconfigured** with a static IP in the same subnet as the LiDAR (e.g. `192.168.1.50/24`) *before* launching anything — the driver does not set this for you:
+```bash
+sudo ip addr add 192.168.1.50/24 dev <YOUR_ETH_INTERFACE>
+```
+Verify the LiDAR is reachable: `ping <YOUR_LIDAR_IP>`.
 
 ---
 
@@ -131,9 +139,30 @@ ros2 bag play <YOUR_BAG_PATH> --clock --rate=1.0
 
 ---
 
+## 8. Re-calibrate Gravity Alignment (after remounting the LiDAR)
+
+The gravity TF quaternion in `launch/mapping.launch.py` is specific to how the sensor is physically mounted. If you remount or reorient the LiDAR, redo this:
+
+1. Run mapping and record a ros2 bag for **at least 30 seconds** while the sensor sits still in its new mount:
+   ```bash
+   ros2 bag record -o <bag_name> /livox/imu_converted
+   ```
+2. Extract the gravity vector / quaternion from the bag:
+   ```bash
+   python3 scripts/gravity_align.py <bag_path>
+   ```
+3. Take the printed `--qx --qy --qz --qw` values and paste them into the `gravity_tf_node` arguments in `ws_fastlio/src/FAST_LIO_ROS2/launch/mapping.launch.py` (around the `--qx/--qy/--qz/--qw` line).
+4. Rebuild `ws_fastlio` so the launch file change takes effect:
+   ```bash
+   cd ws_fastlio && colcon build --symlink-install && cd ..
+   ```
+
+---
+
 ## Notes
 
-- **Gravity TF quaternion** in `launch/mapping.launch.py` is calibrated for this specific sensor mount. Re-run `scripts/gravity_align.py` on a new bag if the sensor is remounted.
-- **PCD output** goes to `~/Fast_lio2_ROS2/fastlio_output/PCD/`. Convert to PLY with `scripts/convert_with_intensity.py`.
+- **Gravity TF quaternion** in `launch/mapping.launch.py` is calibrated for this specific sensor mount. See step 8 above if the sensor is remounted.
+- **PCD output** goes to `<repo_root>/fastlio_output/PCD/` (resolved automatically from the CMakeLists.txt location, independent of what you named the clone directory). Convert to PLY with `scripts/convert_with_intensity.py`.
+- `scripts/convert_with_intensity.py` currently hardcodes `~/Fast_lio2_ROS2/fastlio_output/{PCD,PLY}` at the top of the file. If you cloned this repo under a different directory name (e.g. `Mid360-Fast_lio2_ROS2`), edit those two paths in the script to match your actual clone path before running it.
 - `pcd_save_en` is set to `false` in `config/mid360.yaml` by default — set to `true` to save maps.
 - **Testing ros2-bag** https://drive.google.com/drive/u/1/folders/1-wiL6GzRh8jNeGojVtZaCDNvxl62ghWh  --dowload the whole folder.
