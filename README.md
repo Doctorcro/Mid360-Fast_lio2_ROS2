@@ -197,14 +197,15 @@ The gravity TF quaternion in `launch/mapping.launch.py` is specific to how the s
 	  --storage sqlite3
    ```
 4. After you run the script, you will see a output message  -- 
-	 eg: ros2 run tf2_ros static_transform_publisher **0 0 0 -0.70710529 -0.00120913 0.00000000 0.70710724** --frame-id world_aligned --child-frame-id camera_init
-	 the number represents the: 
+	 eg: ros2 run tf2_ros static_transform_publisher **0 0 0 -0.70710529 -0.00120913 0.00000000 0.70710724** --frame-id world_aligned --child-frame-id camera_init.
+	 
+	 **The number (parameter) represents the: 
 	 `'--x', '0', '--y', '0', '--z', '0',`
 	 `'--qx', '-0.70710529', '--qy', '-0.00120913',`
 	 `'--qz', '0.00000000', '--qw', '0.70710724',`
 5. Take the printed `--qx --qy --qz --qw` values and paste them into the `gravity_tf_node` arguments in `ws_fastlio/src/FAST_LIO_ROS2/launch/mapping.launch.py` (around the `--qx/--qy/--qz/--qw` line).
 ```
- **You can find the parmeter below:**
+ **You can find the parameter below:**
  
  gravity_tf_node = Node(
         package='tf2_ros',
@@ -232,4 +233,3 @@ The gravity TF quaternion in `launch/mapping.launch.py` is specific to how the s
 - `scripts/convert_with_intensity.py` currently hardcodes `~/Fast_lio2_ROS2/fastlio_output/{PCD,PLY}` at the top of the file. If you cloned this repo under a different directory name (e.g. `Mid360-Fast_lio2_ROS2`), edit those two paths in the script to match your actual clone path before running it.
 - `pcd_save_en` is set to `false` in `config/mid360.yaml` by default — set to `true` to save maps.
 - **Testing ros2-bag** https://drive.google.com/drive/u/1/folders/1-wiL6GzRh8jNeGojVtZaCDNvxl62ghWh  --dowload the whole folder.
-
