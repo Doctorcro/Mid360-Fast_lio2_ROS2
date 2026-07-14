@@ -116,25 +116,68 @@ git -C ws_fastlio/src/FAST_LIO_ROS2 submodule update --init --recursive
 
 ---
 
-## 7. Run
+## 7. Run (Mapping/replay bag)
+#### For jazzy
 
 ```bash
-source ws_livox/install/setup.bash
-source ws_fastlio/install/setup.bash
+# bash cammand should be input in every terminal
+source /opt/ros/jazzy/setup.bash
+source Mid360-Fast_lio2_ROS2/ws_livox/install/setup.bash
+source Mid360-Fast_lio2_ROS2/ws_fastlio/install/setup.bash
 
-# for mapping
-ros2 launch fast_lio mapping.launch.py
+# for mapping 
+# terminal --1  Launching the SDK & livox-ros2-driver
+# Make sure the lidar is pluged to the computer and lidar IP is setup
+# Wait until you see "Init lds lidar success!" then you are good to go.
+ros2 launch livox_ros_driver2 msg_MID360_launch.py
+
+# terminal --2  Launch Fastlio2
+ros2 launch fast_lio mapping.launch.py config_file:=mid360.yaml
+
+# terminal --3  Recoed ros2-bag
+ros2 bag record -o ~/<target_directory>/map$(date +%Y%m%d_%H%M%S) /livox/lidar /livox/imu /livox/imu_converted /path
+
+
 
 # for ros2-bag replay
+# terminal --1  Launching the Fastlio2
+ros2 launch fast_lio mapping.launch.py config_file:=mid360.yaml use_sim_time:=true
+
+# terminal --2  replay the ros2-bag
 ros2 launch fast_lio mapping.launch.py --config_file:=mid360.yaml --use_sim_time:=true
 # use_sim_time:= >> to prevent clock mismatches while in replay (prevent nod time mismatch)
 ```
 
-For bag replay:
+
+#### For humble
+
 ```bash
-ros2 bag play <YOUR_BAG_PATH> --clock --rate=1.0 
-# "clock" for line-up to sim time
-# suggested maximum rate=2.5 for GUP under gtx-1050
+# bash cammand should be input in every terminal
+source /opt/ros/humble/setup.bash
+source Mid360-Fast_lio2_ROS2/ws_livox/install/setup.bash
+source Mid360-Fast_lio2_ROS2/ws_fastlio/install/setup.bash
+
+# for mapping 
+# terminal --1  Launching the SDK & livox-ros2-driver
+# Make sure the lidar is pluged to the computer and lidar IP is setup
+# Wait until you see "Init lds lidar success!" then you are good to go.
+ros2 launch livox_ros_driver2 msg_MID360_launch.py
+
+# terminal --2  Launch Fastlio2
+ros2 launch fast_lio mapping.launch.py config_file:=mid360.yaml
+
+# terminal --3  Recoed ros2-bag
+ros2 bag record -o ~/<target_directory>/map$(date +%Y%m%d_%H%M%S) /livox/lidar /livox/imu /livox/imu_converted /path
+
+
+
+# for ros2-bag replay
+# terminal --1  Launching the Fastlio2
+ros2 launch fast_lio mapping.launch.py config_file:=mid360.yaml use_sim_time:=true
+
+# terminal --2  replay the ros2-bag
+ros2 launch fast_lio mapping.launch.py --config_file:=mid360.yaml --use_sim_time:=true
+# use_sim_time:= >> to prevent clock mismatches while in replay (prevent nod time mismatch)
 ```
 
 ---
@@ -143,19 +186,42 @@ ros2 bag play <YOUR_BAG_PATH> --clock --rate=1.0
 
 The gravity TF quaternion in `launch/mapping.launch.py` is specific to how the sensor is physically mounted. If you remount or reorient the LiDAR, redo this:
 
-1. Run mapping and record a ros2 bag for **at least 30 seconds** while the sensor sits still in its new mount:
+1. Run mapping and record a ros2-bag for **at least 30 seconds** while the sensor sits still in its new mount:
    ```bash
-   ros2 bag record -o <bag_name> /livox/imu_converted
+	 ros2 bag record -o <bag_name> /livox/imu_converted
    ```
-2. Extract the gravity vector / quaternion from the bag:
+3. Extract the gravity vector (Gravity TF quaternion) from the bag:
    ```bash
-   python3 scripts/gravity_align.py <bag_path>
+	 python3 Mid360-Fast_lio2_ROS2/scripts/gravity_align.py \
+	  <target_ros-bag_path> \
+	  --storage sqlite3
    ```
-3. Take the printed `--qx --qy --qz --qw` values and paste them into the `gravity_tf_node` arguments in `ws_fastlio/src/FAST_LIO_ROS2/launch/mapping.launch.py` (around the `--qx/--qy/--qz/--qw` line).
-4. Rebuild `ws_fastlio` so the launch file change takes effect:
+4. After you run the script, you will see a output message  -- 
+	 eg: ros2 run tf2_ros static_transform_publisher **0 0 0 -0.70710529 -0.00120913 0.00000000 0.70710724** --frame-id world_aligned --child-frame-id camera_init
+	 the number represents the: 
+	 `'--x', '0', '--y', '0', '--z', '0',`
+	 `'--qx', '-0.70710529', '--qy', '-0.00120913',`
+	 `'--qz', '0.00000000', '--qw', '0.70710724',`
+5. Take the printed `--qx --qy --qz --qw` values and paste them into the `gravity_tf_node` arguments in `ws_fastlio/src/FAST_LIO_ROS2/launch/mapping.launch.py` (around the `--qx/--qy/--qz/--qw` line).
+```
+ **You can find the parmeter below:**
+ 
+ gravity_tf_node = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=[
+            '--x', '0', '--y', '0', '--z', '0',
+            '--qx', '-0.70710529', '--qy', '-0.00120913',
+            '--qz', '0.00000000', '--qw', '0.70710724',
+            '--frame-id', 'world_aligned',
+            '--child-frame-id', 'camera_init'
+```
+
+6. Rebuild `ws_fastlio` so the launch file change takes effect:
    ```bash
    cd ws_fastlio && colcon build --symlink-install && cd ..
    ```
+   
 
 ---
 
@@ -166,3 +232,4 @@ The gravity TF quaternion in `launch/mapping.launch.py` is specific to how the s
 - `scripts/convert_with_intensity.py` currently hardcodes `~/Fast_lio2_ROS2/fastlio_output/{PCD,PLY}` at the top of the file. If you cloned this repo under a different directory name (e.g. `Mid360-Fast_lio2_ROS2`), edit those two paths in the script to match your actual clone path before running it.
 - `pcd_save_en` is set to `false` in `config/mid360.yaml` by default — set to `true` to save maps.
 - **Testing ros2-bag** https://drive.google.com/drive/u/1/folders/1-wiL6GzRh8jNeGojVtZaCDNvxl62ghWh  --dowload the whole folder.
+
